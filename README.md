@@ -12,12 +12,31 @@
 
 ## 安装
 
+**推荐：用 .vsix 安装**（走 VS Code 自己的安装流程，会被登记进扩展缓存，重启后稳定存在）：
+
 ```bash
-node tools/install.js                 # 复制到 ~/.vscode/extensions
-node tools/update-user-settings.js --write   # 顺手把下面的开关写进用户 settings.json（先备份、再校验 JSONC）
+code --install-extension section-figure-paste-0.1.0.vsix --force
 ```
 
-然后在 VS Code 里执行 **Developer: Reload Window**。也可以手动把 `package.json`、`extension.js`、`core.js` 复制到 `~/.vscode/extensions/local.section-figure-paste-0.1.0/`。
+.vsix 可以从 [Releases](https://github.com/EeeMaoY/section-figure-paste/releases) 下载，也可以本地自己打包：
+
+```bash
+npm install -g @vscode/vsce
+vsce package            # 生成 section-figure-paste-0.1.0.vsix
+
+# 只有 pnpm 时（vsce 的依赖需要扁平布局，否则会报 entities 找不到）：
+pnpm add --dir .vsce-tool --node-linker=hoisted @vscode/vsce
+node .vsce-tool/node_modules/@vscode/vsce/vsce package
+```
+
+**开发者：改完代码想立刻试**，拷目录最快：
+
+```bash
+node tools/install.js                        # 复制到 ~/.vscode/extensions
+node tools/update-user-settings.js --write   # 把必需开关写进用户 settings.json（先备份、再校验 JSONC）
+```
+
+> ⚠️ **手动拷目录的坑**：如果 VS Code 正在运行、或它的扩展缓存里还留着旧目录名的记录，它会把新拷进去的目录当成"卸载残留"，启动时写进 `~/.vscode/extensions/.obsolete` 并直接跳过（现象就是"插件不见了"，`sharedprocess.log` 里是 `Marked extension as removed <目录名>`），随后还会把它删掉。遇到时删掉 `.obsolete` 里对应条目，或者干脆改用上面的 `code --install-extension` 安装。
 
 ### 必须配合的开关
 
@@ -31,6 +50,8 @@ node tools/update-user-settings.js --write   # 顺手把下面的开关写进用
   "markdown.editor.drop.enabled": "never"
 }
 ```
+
+上面这条也可以让脚本代劳：`node tools/update-user-settings.js --write`（会先备份 `settings.json`、再用内置的 JSONC 解析校验一遍）。
 
 > 代价：Typst 里"粘贴 URL 自动变链接"这类 Tinymist 自带的粘贴增强也一起失效了；Markdown 里"粘贴 URL 变链接"是另一个开关（`markdown.editor.pasteUrlAsFormattedLink.enabled`），不受影响。
 
