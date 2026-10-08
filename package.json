@@ -1,0 +1,115 @@
+{
+  "name": "section-image-paste",
+  "displayName": "Section Image Paste",
+  "description": "粘贴图片时按光标所处章节自动命名（如 imgs/5.9.1.png）并插入引用，支持 Typst 与 Markdown。",
+  "version": "0.1.0",
+  "publisher": "local",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "typst",
+    "markdown",
+    "image",
+    "paste"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:typst",
+    "onLanguage:markdown"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "sectionImagePaste.showSection",
+        "title": "章节图片粘贴：显示光标处的章节号与下一个文件名"
+      }
+    ],
+    "configuration": {
+      "title": "Section Image Paste",
+      "properties": {
+        "sectionImagePaste.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "总开关。关闭后本扩展不再接管粘贴与拖拽。"
+        },
+        "sectionImagePaste.targetDir": {
+          "type": "string",
+          "default": "imgs",
+          "markdownDescription": "图片保存目录。相对路径基于当前文档所在目录解析；以 `/` 开头则相对工作区根目录。可使用 `${section}`、`${docName}` 等占位符（例如 `imgs/${section}`）。"
+        },
+        "sectionImagePaste.fileNameFormat": {
+          "type": "string",
+          "default": "${section}.${index}.${ext}",
+          "markdownDescription": "文件名模板。可用占位符：`${section}` `${sectionFull}` `${index}` `${level}` `${title}` `${docName}` `${origName}` `${ext}` `${date}` `${time}` `${timestamp}`。例：`fig-${section}.${index}.${ext}` 得到 `fig-5.9.1.png`。"
+        },
+        "sectionImagePaste.sectionNumbering": {
+          "type": "string",
+          "enum": [
+            "dropFirstLevel",
+            "full"
+          ],
+          "default": "dropFirstLevel",
+          "markdownDescription": "章节号算法。`dropFirstLevel`：去掉最外层标题（Typst 的 `=`、Markdown 的 `#`）后取层级编号，例如第 5 个 `==` 下的第 9 个 `===` → `5.9`；`full`：含最外层，得到 `1.5.9`。"
+        },
+        "sectionImagePaste.sectionDepth": {
+          "type": "number",
+          "default": 0,
+          "markdownDescription": "章节号最多保留几级（0 = 不限，跟随光标前最近的标题）。设成 `2` 表示只保留两级：`====` 小节里的图仍归到所属 `===` 章节，于是同一个 `===` 章节下的图会连续编号成 `5.5.1`、`5.5.2`……（与 lab1 报告里 `5.5.1`…`5.5.10` 的写法一致）。"
+        },
+        "sectionImagePaste.indexScope": {
+          "type": "string",
+          "enum": [
+            "perSection",
+            "perDocument"
+          ],
+          "default": "perSection",
+          "markdownDescription": "`${index}` 的计数范围：`perSection` 每个章节从 1 重新开始；`perDocument` 在整个文档内连续编号。"
+        },
+        "sectionImagePaste.unnumberedLabel": {
+          "type": "string",
+          "default": "0",
+          "markdownDescription": "粘贴位置在任何标题之前（算不出章节号）时 `${section}` 的取值。"
+        },
+        "sectionImagePaste.typstSnippet": {
+          "type": "string",
+          "default": "#image(\"${path}\", width: 80%)",
+          "markdownDescription": "Typst 文档中插入的文本模板。可用 `${path}` `${name}` `${section}` `${index}` `${title}` `${alt}`。"
+        },
+        "sectionImagePaste.markdownSnippet": {
+          "type": "string",
+          "default": "![](${path})",
+          "markdownDescription": "Markdown 文档中插入的文本模板。占位符同上。"
+        },
+        "sectionImagePaste.imageExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "png",
+            "jpg",
+            "jpeg",
+            "gif",
+            "webp",
+            "bmp",
+            "svg",
+            "avif",
+            "tif",
+            "tiff"
+          ],
+          "markdownDescription": "允许处理（复制并按章节重命名）的图片扩展名。"
+        },
+        "sectionImagePaste.handleDrop": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "是否同样接管拖拽进编辑器的图片。开启后建议把 `tinymist.dragAndDrop` 设为 `disable`、`markdown.editor.drop.enabled` 设为 `never`。"
+        }
+      }
+    }
+  }
+}
