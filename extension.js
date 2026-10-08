@@ -180,7 +180,10 @@ function buildBaseVars(document, info, section, config) {
 
 async function nextIndexFor(document, config, baseVars, targetDirUri) {
   const existing = await collectExistingNames(targetDirUri, document, config);
-  const loose = config.indexScope === 'perDocument' ? ['section', 'sectionFull'] : [];
+  // 找已有序号时，扩展名/原文件名按通配处理（模板里的 ${ext} 不该把已有文件排除掉）；
+  // perDocument 模式下章节号本身也放宽为通配，实现跨章节连续编号。
+  const loose = ['ext', 'origName'];
+  if (config.indexScope === 'perDocument') loose.push('section', 'sectionFull');
   return {
     existing: existing,
     index: core.nextIndex(existing, config.fileNameFormat, baseVars, loose),

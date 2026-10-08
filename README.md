@@ -11,7 +11,8 @@
 ## 安装
 
 ```bash
-node tools/install.js
+node tools/install.js                 # 复制到 ~/.vscode/extensions
+node tools/update-user-settings.js --write   # 顺手把下面的开关写进用户 settings.json（先备份、再校验 JSONC）
 ```
 
 然后在 VS Code 里执行 **Developer: Reload Window**。也可以手动把 `package.json`、`extension.js`、`core.js` 复制到 `~/.vscode/extensions/local.section-image-paste-0.1.0/`。
@@ -102,7 +103,8 @@ node tools/install.js
 核心逻辑（标题解析、章节号、模板展开、序号推导）都在 `core.js`，不依赖 VS Code，可以直接跑测试：
 
 ```bash
-node test/core.test.js
+node test/core.test.js        # 纯函数 + 真实报告回归
+node test/extension.test.js   # 用假的 vscode 模块把"激活 → 粘贴 → 落盘 → 再粘贴"整条链路跑一遍
 ```
 
 测试除了固定夹具，还会拿 `../zju-comnet-labs-2026/writeups/lab1`、`lab2` 和 `../os26-fall/docs/lab1` 里的真实报告做回归：校验报告正文里已经写好的 `imgs/5.9.1.png` 这类引用与算出来的章节号、序号是否一致（文件不存在时自动跳过）。
