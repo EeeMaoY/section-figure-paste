@@ -1,5 +1,7 @@
 # Section Figure Paste
 
+[![test](https://github.com/EeeMaoY/section-figure-paste/actions/workflows/test.yml/badge.svg)](https://github.com/EeeMaoY/section-figure-paste/actions/workflows/test.yml)
+
 粘贴图片时**按光标所处章节自动命名**的 VS Code 扩展：在 `=== telnet 命令产生的数据包` 里 Ctrl+V，图片会存成 `imgs/5.9.1.png`（该章节第 1 张图），并在光标处插入 `#image("imgs/5.9.1.png", width: 80%)`；同一章节继续粘贴就是 `5.9.2.png`、`5.9.3.png`…… Markdown 文档同样支持。
 
 ## 为什么需要它

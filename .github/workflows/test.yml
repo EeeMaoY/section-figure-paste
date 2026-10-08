@@ -1,0 +1,37 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['20', '22']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: 语法检查
+        run: |
+          node --check extension.js
+          node --check core.js
+          node --check tools/install.js
+          node --check tools/update-user-settings.js
+
+      - name: 纯函数测试（章节号 / 序号推导 / 文件名模板）
+        run: node test/core.test.js
+
+      - name: 扩展端到端测试（用假 vscode 模块跑 激活 → 粘贴 → 落盘 → 再粘贴）
+        run: node test/extension.test.js
