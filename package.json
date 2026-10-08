@@ -5,6 +5,14 @@
   "version": "0.1.0",
   "publisher": "local",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EeeMaoY/section-figure-paste.git"
+  },
+  "bugs": {
+    "url": "https://github.com/EeeMaoY/section-figure-paste/issues"
+  },
+  "homepage": "https://github.com/EeeMaoY/section-figure-paste#readme",
   "engines": {
     "vscode": "^1.90.0"
   },
