@@ -33,7 +33,7 @@ async function test(name, fn) {
 
 const DEFAULT_SETTINGS = {};
 for (const key of Object.keys(pkg.contributes.configuration.properties)) {
-  DEFAULT_SETTINGS[key.replace('sectionImagePaste.', '')] = pkg.contributes.configuration.properties[key].default;
+  DEFAULT_SETTINGS[key.replace('sectionFigurePaste.', '')] = pkg.contributes.configuration.properties[key].default;
 }
 
 let settingsOverride = {};
@@ -124,7 +124,7 @@ const fakeVscode = {
       return undefined;
     },
     getConfiguration(section) {
-      assert.strictEqual(section, 'sectionImagePaste');
+      assert.strictEqual(section, 'sectionFigurePaste');
       return {
         get(key, fallback) {
           if (Object.prototype.hasOwnProperty.call(settingsOverride, key)) return settingsOverride[key];
@@ -204,13 +204,13 @@ async function main() {
     assert.strictEqual(registered.paste.length, 1);
     assert.strictEqual(registered.drop.length, 1);
     assert.strictEqual(registered.commands.length, 1);
-    assert.strictEqual(registered.commands[0].id, 'sectionImagePaste.showSection');
+    assert.strictEqual(registered.commands[0].id, 'sectionFigurePaste.showSection');
     assert.strictEqual(registered.paste[0].metadata.providedPasteEditKinds.length, 1);
     assert.ok(registered.paste[0].metadata.pasteMimeTypes.indexOf('image/png') !== -1);
     assert.ok(registered.paste[0].metadata.pasteMimeTypes.indexOf('files') !== -1);
   });
 
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'section-image-paste-ext-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'section-figure-paste-ext-'));
   fakeVscode.workspace.workspaceFolders = [{ uri: Uri.file(root) }];
 
   try {

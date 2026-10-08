@@ -9,7 +9,7 @@ const IMAGE_MIME_TYPES = [
   'image/bmp', 'image/avif', 'image/tiff', 'image/svg+xml',
 ];
 
-const PASTE_KIND = vscode.DocumentDropOrPasteEditKind.Empty.append('sectionImagePaste');
+const PASTE_KIND = vscode.DocumentDropOrPasteEditKind.Empty.append('sectionFigurePaste');
 
 const SELECTOR = [
   { language: 'typst' },
@@ -53,14 +53,14 @@ function activate(context) {
     vscode.languages.registerDocumentDropEditProvider(SELECTOR, dropProvider, {
       providedDropEditKinds: [PASTE_KIND],
     }),
-    vscode.commands.registerCommand('sectionImagePaste.showSection', showSectionAtCursor)
+    vscode.commands.registerCommand('sectionFigurePaste.showSection', showSectionAtCursor)
   );
 }
 
 function deactivate() { }
 
 function readConfig(document) {
-  const config = vscode.workspace.getConfiguration('sectionImagePaste', document);
+  const config = vscode.workspace.getConfiguration('sectionFigurePaste', document);
   return {
     enabled: config.get('enabled', true),
     targetDir: config.get('targetDir', 'imgs'),
@@ -229,7 +229,7 @@ async function buildEdit(document, position, entries, token, isDrop) {
     try {
       contents = await readEntryContents(entry, token);
     } catch (error) {
-      vscode.window.showWarningMessage('章节图片粘贴：读取图片失败（' + entry.name + '）：' + (error && error.message ? error.message : error));
+      vscode.window.showWarningMessage('Section Figure Paste：读取图片失败（' + entry.name + '）：' + (error && error.message ? error.message : error));
       continue;
     }
 
@@ -260,7 +260,7 @@ async function buildEdit(document, position, entries, token, isDrop) {
 async function showSectionAtCursor() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
-    vscode.window.showInformationMessage('章节图片粘贴：当前没有打开的编辑器。');
+    vscode.window.showInformationMessage('Section Figure Paste：当前没有打开的编辑器。');
     return;
   }
   const document = editor.document;

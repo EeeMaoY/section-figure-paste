@@ -21,10 +21,13 @@ const ENTRIES = [
   ['tinymist.dragAndDrop', 'disable', '同上（拖拽）'],
   ['markdown.editor.filePaste.enabled', 'never', '关掉内置 Markdown 的粘贴处理'],
   ['markdown.editor.drop.enabled', 'never', '同上（拖拽）'],
-  ['sectionImagePaste.targetDir', 'imgs', '图片存到文档同目录的 imgs/'],
-  ['sectionImagePaste.fileNameFormat', '${section}.${index}.${ext}', '文件名 = 章节号.本节序号.扩展名'],
-  ['sectionImagePaste.sectionNumbering', 'dropFirstLevel', '章节号去掉最外层标题'],
+  ['sectionFigurePaste.targetDir', 'imgs', '图片存到文档同目录的 imgs/'],
+  ['sectionFigurePaste.fileNameFormat', '${section}.${index}.${ext}', '文件名 = 章节号.本节序号.扩展名'],
+  ['sectionFigurePaste.sectionNumbering', 'dropFirstLevel', '章节号去掉最外层标题'],
 ];
+
+/** 早期版本用过的设置命名空间：扩展改名后顺手清理，免得设置界面里报"未知配置项" */
+const LEGACY_PREFIXES = ['sectionImagePaste.'];
 
 /** 去掉 // 与 /* *\/ 注释（跳过字符串内部），再去掉尾逗号，然后 JSON.parse 校验 */
 function parseJsonc(text) {
@@ -92,6 +95,21 @@ function applyEntries(text, entries) {
   };
 }
 
+/** 删掉单独占一行的旧配置项（命名空间重命名遗留），返回新文本与被删的键 */
+function removeLegacyKeys(text, prefixes) {
+  const removed = [];
+  const kept = [];
+  for (const line of text.split(/\r?\n/)) {
+    const match = /^\s*"([^"]+)"\s*:/.exec(line);
+    if (match && prefixes.some(function (prefix) { return match[1].startsWith(prefix); })) {
+      removed.push(match[1]);
+      continue;
+    }
+    kept.push(line);
+  }
+  return { text: kept.join('\n'), removed: removed };
+}
+
 function main() {
   const write = process.argv.indexOf('--write') !== -1;
   const file = settingsPath();
@@ -100,9 +118,11 @@ function main() {
   // 先确认原文件本身是能解析的，避免在坏文件上继续叠加
   parseJsonc(original);
 
-  const result = applyEntries(original, ENTRIES);
-  if (!result.inserted.length) {
-    console.log('所有设置都已存在，无需改动：' + file);
+  const cleaned = removeLegacyKeys(original, LEGACY_PREFIXES);
+  const result = applyEntries(cleaned.text, ENTRIES);
+
+  if (!result.inserted.length && !cleaned.removed.length) {
+    console.log('所有设置都已就绪，无需改动：' + file);
     return;
   }
 
@@ -111,8 +131,14 @@ function main() {
     if (result.inserted.indexOf(entry[0]) === -1) continue;
     if (parsed[entry[0]] !== entry[1]) throw new Error('写入校验失败：' + entry[0]);
   }
+  for (const key of cleaned.removed) {
+    if (Object.prototype.hasOwnProperty.call(parsed, key)) throw new Error('旧配置项没删干净：' + key);
+  }
 
   console.log('目标文件：' + file);
+  if (cleaned.removed.length) {
+    console.log('将删除旧配置项 ' + cleaned.removed.length + ' 项：' + cleaned.removed.join(', '));
+  }
   console.log('将新增 ' + result.inserted.length + ' 项：');
   for (const entry of ENTRIES) {
     if (result.inserted.indexOf(entry[0]) === -1) continue;

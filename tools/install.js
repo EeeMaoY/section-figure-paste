@@ -22,7 +22,7 @@ const baseDir = process.argv[2]
 
 const folderName = pkg.publisher + '.' + pkg.name + '-' + pkg.version;
 const target = path.join(baseDir, folderName);
-const files = ['package.json', 'extension.js', 'core.js', 'README.md'];
+const files = ['package.json', 'extension.js', 'core.js', 'README.md', 'LICENSE', 'CHANGELOG.md'];
 
 fs.mkdirSync(target, { recursive: true });
 for (const file of files) {
@@ -33,4 +33,4 @@ for (const file of files) {
 console.log('');
 console.log('已安装到：' + target);
 console.log('在 VS Code 里执行 “Developer: Reload Window”（或重启 VS Code）后生效。');
-console.log('若没生效：命令面板 → “Developer: Show Running Extensions” 里确认 local.section-image-paste 已激活。');
+console.log('若没生效：命令面板 → “Developer: Show Running Extensions” 里确认 local.section-figure-paste 已激活。');

@@ -180,7 +180,7 @@ console.log('模拟连续粘贴（真实文件系统）');
 
 test('同一章节连粘三次 → 5.9.1 / 5.9.2 / 5.9.3；手工再放一个 5.9.4.png 后 → 5.9.5', function () {
   const os = require('os');
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'section-image-paste-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'section-figure-paste-'));
   const format = '${section}.${index}.${ext}';
   const vars = { section: '5.9', ext: 'png' };
   const readNames = function () { return fs.readdirSync(dir); };
