@@ -2,6 +2,8 @@
 
 [![test](https://github.com/EeeMaoY/section-figure-paste/actions/workflows/test.yml/badge.svg)](https://github.com/EeeMaoY/section-figure-paste/actions/workflows/test.yml)
 
+![演示：在 === telnet 命令产生的数据包 里粘贴，图片存成 imgs/5.9.1.png](images/demo.png)
+
 粘贴图片时**按光标所处章节自动命名**的 VS Code 扩展：在 `=== telnet 命令产生的数据包` 里 Ctrl+V，图片会存成 `imgs/5.9.1.png`（该章节第 1 张图），并在光标处插入 `#image("imgs/5.9.1.png", width: 80%)`；同一章节继续粘贴就是 `5.9.2.png`、`5.9.3.png`…… Markdown 文档同样支持。
 
 ## 为什么需要它
@@ -12,7 +14,15 @@
 
 ## 安装
 
-**推荐：用 .vsix 安装**（走 VS Code 自己的安装流程，会被登记进扩展缓存，重启后稳定存在）：
+**从 VS Code Marketplace 安装**
+
+在扩展面板搜索 `Section Figure Paste`，或：
+
+```bash
+code --install-extension EeeMao.section-figure-paste
+```
+
+**或者：用 .vsix 安装**
 
 ```bash
 code --install-extension section-figure-paste-0.1.0.vsix --force
@@ -28,6 +38,9 @@ vsce package            # 生成 section-figure-paste-0.1.0.vsix
 pnpm add --dir .vsce-tool --node-linker=hoisted @vscode/vsce
 node .vsce-tool/node_modules/@vscode/vsce/vsce package
 ```
+
+> 发版说明：完整的上架流程与 CI 自动发布见 [docs/PUBLISHING.md](docs/PUBLISHING.md) ——
+> 推一个 `v*` tag 就会自动发布到 Marketplace 并建 GitHub Release。
 
 **开发者：改完代码想立刻试**，拷目录最快：
 
@@ -138,3 +151,9 @@ node test/extension.test.js   # 用假的 vscode 模块把"激活 → 粘贴 →
 - 粘贴**工作区内**已有的图片文件时，本扩展也会复制一份到 `imgs/` 并重命名（Tinymist 原本是直接引用原位置）。
 - 重命名磁盘上的图片不会自动改写文档里的引用——不过 Tinymist 自己支持"文件重命名/移动时更新链接"，在资源管理器里 F2 改名即可。
 - 拖拽多条文件、或粘贴非图片文件时，本扩展不接管，交回给编辑器默认行为。
+- 上面那张演示图是按实际界面手绘的示意图（不是录屏）。想自己录 GIF 的话，用 ScreenToGif 之类录下"输入 `=== 标题` → Ctrl+V → 看文件名"这一段即可。
+
+## 反馈
+
+有问题请开 Issue：<https://github.com/EeeMaoY/section-figure-paste/issues>，
+常见问题见 [SUPPORT.md](SUPPORT.md)。

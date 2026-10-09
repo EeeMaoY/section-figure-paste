@@ -3,8 +3,13 @@
   "displayName": "Section Figure Paste — 按章节自动编号的图片粘贴",
   "description": "Paste images into Typst/Markdown and auto-name them by section. 按章节自动编号命名粘贴的图片。",
   "version": "0.1.0",
-  "publisher": "local",
+  "publisher": "EeeMao",
   "license": "MIT",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#1F3864",
+    "theme": "dark"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/EeeMaoY/section-figure-paste.git"
@@ -30,6 +35,9 @@
     "academic",
     "thesis",
     "screenshot"
+  ],
+  "extensionKind": [
+    "workspace"
   ],
   "main": "./extension.js",
   "activationEvents": [

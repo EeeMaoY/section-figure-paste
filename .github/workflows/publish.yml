@@ -1,0 +1,125 @@
+# 打 tag 时自动发布：先发布到 VS Code Marketplace，再建 GitHub Release 并挂上 .vsix。
+#
+# 注意两个名字不要混：
+#   GitHub 账号 / 仓库属主 = EeeMaoY   （下面 subject 里用）
+#   Marketplace publisher  = EeeMao    （package.json 的 publisher，发布目标）
+#
+# 前置配置见 docs/PUBLISHING.md「CI 自动发布」一节。用到的仓库配置：
+#   Environment : marketplace      （Entra 的 federated credential 信任的就是它 —— 这样以后加新 tag 都不用改信任配置）
+#   Variable    : AZURE_CLIENT_ID  （Entra 应用的 client id）
+#   Variable    : AZURE_TENANT_ID  （租户 id）
+#
+# 不需要任何 Secret：全程用 OIDC 换短期令牌，没有长期密钥可泄露。
+#
+# 用法：改好 package.json 的 version 与 CHANGELOG.md 后
+#   git tag v0.1.0 && git push origin v0.1.0
+name: publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: 发布到 Marketplace
+    runs-on: ubuntu-latest
+    environment: marketplace
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 校验 tag 与 package.json 版本一致
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ] && [ "v$VERSION" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} 与 package.json 的 $VERSION 不一致，先统一再发版"
+            exit 1
+          fi
+          echo "即将发布 $VERSION"
+
+      # vsce 是读完文件之后才校验 icon 的，这里提前失败，省得白等一轮
+      - name: 校验 package.json 声明的素材文件存在
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = require('./package.json');
+            for (const key of ['icon']) {
+              const p = pkg[key];
+              if (!p) continue;
+              if (!fs.existsSync(p)) { console.error(key + ' 指向的文件不存在: ' + p); process.exit(1); }
+              console.log(key + ' -> ' + p + ' ok');
+            }
+          "
+
+      - name: 语法检查
+        run: |
+          node --check extension.js
+          node --check core.js
+          node --check tools/install.js
+          node --check tools/update-user-settings.js
+
+      - name: 单元测试与端到端测试
+        run: |
+          node test/core.test.js
+          node test/extension.test.js
+
+      - name: 安装 vsce
+        run: npm install -g @vscode/vsce
+
+      - name: 用 OIDC 登录 Azure
+        id: azure_login
+        # 允许失败：失败时下面照样跑到发布那步，由它给出统一的错误信息，
+        # 比直接中断更容易看出是哪一环断的。
+        continue-on-error: true
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      - name: 发布到 Marketplace（Entra ID / OIDC）
+        if: steps.azure_login.outcome == 'success'
+        run: vsce publish --azure-credential
+
+      - name: OIDC 登录失败则终止
+        if: steps.azure_login.outcome != 'success'
+        run: |
+          echo "::error::OIDC 登录 Azure 失败，没进入发布环节。最常见的原因是 federated credential 的 subject 与 GitHub token 的 sub 对不上（环境名拼错、或锚到了 branch/tag）。排错见 docs/PUBLISHING.md"
+          exit 1
+
+      - name: 打包 .vsix
+        run: vsce package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: '*.vsix'
+          if-no-files-found: error
+
+  release:
+    name: 建 GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: vsix
+
+      - name: 建 Release 并挂上 .vsix
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: '*.vsix'

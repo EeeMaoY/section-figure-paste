@@ -55,7 +55,7 @@ clearObsoleteEntry();
 console.log('');
 console.log('已安装到：' + target);
 console.log('在 VS Code 里执行 “Developer: Reload Window”（或重启 VS Code）后生效。');
-console.log('若没生效：命令面板 → “Developer: Show Running Extensions” 里确认 local.section-figure-paste 已激活。');
+console.log('若没生效：命令面板 → “Developer: Show Running Extensions” 里确认 ' + pkg.publisher + '.' + pkg.name + ' 已激活。');
 console.log('');
 console.log('提示：这样装出来的副本不会被 VS Code 正式登记（扩展面板里可能显示为本地扩展）。');
 console.log('      长期使用或给别人分发，请打包成 .vsix 后用 code --install-extension 安装，见 README「安装」一节。');

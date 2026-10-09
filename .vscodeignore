@@ -1,7 +1,11 @@
 .git/**
 .github/**
 .gitignore
+.gitattributes
 .vscodeignore
+.scratch/**
+.acl-recovery/**
+docs/**
 test/**
 tools/**
 *.vsix
