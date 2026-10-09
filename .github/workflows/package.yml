@@ -1,0 +1,131 @@
+# 打包 .vsix 并（打 tag 时）自动建 GitHub Release。
+#
+# 不依赖任何认证 / Secret：这个工作流只打包，不发布到 Marketplace。
+# 用途是"没有 Azure 凭据也能拿到可分发的 .vsix"：
+#   - 手动触发（Actions → package → Run workflow）→ 下载 artifact
+#   - 推 v* tag → 自动建 GitHub Release 并把 .vsix 挂上去，页面直接可下载
+#
+# 发布到 Marketplace 由 publish.yml 负责（那个需要 Entra ID 认证）。
+name: package
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    name: 打包 .vsix
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.info.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 读取版本号
+        id: info
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "版本：$VERSION"
+
+      - name: 校验 tag 与 package.json 版本一致
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.info.outputs.version }}"
+          if [ "v$VERSION" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} 与 package.json 的 $VERSION 不一致，先把版本统一再发"
+            exit 1
+          fi
+          echo "tag 与 package.json 一致：v$VERSION"
+
+      - name: 校验 package.json 声明的素材文件存在
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = require('./package.json');
+            for (const key of ['icon']) {
+              const p = pkg[key];
+              if (!p) continue;
+              if (!fs.existsSync(p)) { console.error(key + ' 指向的文件不存在: ' + p); process.exit(1); }
+              console.log(key + ' -> ' + p + ' ok');
+            }
+          "
+
+      - name: 语法检查
+        run: |
+          node --check extension.js
+          node --check core.js
+          node --check tools/install.js
+          node --check tools/update-user-settings.js
+
+      - name: 单元测试与端到端测试
+        run: |
+          node test/core.test.js
+          node test/extension.test.js
+
+      - name: 安装 vsce 并打包
+        run: |
+          npm install -g @vscode/vsce
+          vsce package --out "section-figure-paste-${{ steps.info.outputs.version }}.vsix"
+          ls -l ./*.vsix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: section-figure-paste-${{ steps.info.outputs.version }}
+          path: '*.vsix'
+          if-no-files-found: error
+
+      - name: 写工作流摘要（含安装命令）
+        run: |
+          {
+            echo "## section-figure-paste v${{ steps.info.outputs.version }}"
+            echo ""
+            echo "本轮的 \`.vsix\` 在下方 **Artifacts** 里（下载需登录 GitHub）。"
+            echo ""
+            echo "下载后本地安装："
+            echo ""
+            echo '```bash'
+            echo "code --install-extension section-figure-paste-${{ steps.info.outputs.version }}.vsix --force"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # 只有 tag 才建 Release：这样在任何认证就绪之前，就已经有一个可下载页面
+  release:
+    name: 建 GitHub Release
+    if: github.ref_type == 'tag'
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: section-figure-paste-${{ needs.package.outputs.version }}
+          path: vsix
+
+      - name: 列出下载到的文件
+        run: ls -l vsix
+
+      - name: 建 Release 并挂上 .vsix
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: vsix/*.vsix

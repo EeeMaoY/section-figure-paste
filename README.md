@@ -39,8 +39,7 @@ pnpm add --dir .vsce-tool --node-linker=hoisted @vscode/vsce
 node .vsce-tool/node_modules/@vscode/vsce/vsce package
 ```
 
-> 发版说明：完整的上架流程与 CI 自动发布见 [docs/PUBLISHING.md](docs/PUBLISHING.md) ——
-> 推一个 `v*` tag 就会自动发布到 Marketplace 并建 GitHub Release。
+> 发版说明：推一个 `v*` tag，GitHub Actions 会自动发布到 Marketplace 并建 GitHub Release（见 `.github/workflows/publish.yml`）。
 
 **开发者：改完代码想立刻试**，拷目录最快：
 
@@ -144,6 +143,13 @@ node test/extension.test.js   # 用假的 vscode 模块把"激活 → 粘贴 →
 ```
 
 测试除了固定夹具，还会拿 `../zju-comnet-labs-2026/writeups/lab1`、`lab2` 和 `../os26-fall/docs/lab1` 里的真实报告做回归：校验报告正文里已经写好的 `imgs/5.9.1.png` 这类引用与算出来的章节号、序号是否一致（文件不存在时自动跳过）。
+
+### 目录约定
+
+- `tools/` 只放**长期维护**的开发脚本（目前是 `install.js`、`update-user-settings.js`）。
+  **一次性辅助脚本不要放这里** —— 会进仓库、也会出现在别人 clone 下来的目录里。
+- **一次性脚本、临时产物、本机专用文件统一放 `.scratch/`**：它同时被 `.gitignore` 与 `.vscodeignore` 忽略，
+  既不提交也不进 `.vsix`。例如生成图标/演示图的脚本、上架自检脚本、`.vsix` 本地构建脚本都在那里。
 
 ## 已知限制
 

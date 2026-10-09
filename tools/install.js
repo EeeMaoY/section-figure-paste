@@ -26,7 +26,17 @@ const baseDir = process.argv[2]
 
 const folderName = pkg.publisher + '.' + pkg.name + '-' + pkg.version;
 const target = path.join(baseDir, folderName);
-const files = ['package.json', 'extension.js', 'core.js', 'README.md', 'LICENSE', 'CHANGELOG.md'];
+// 必须与 package.json 引用的资源一致：icon 声明的图片不拷过去，扩展面板里会没有图标
+const files = [
+  'package.json',
+  'extension.js',
+  'core.js',
+  'README.md',
+  'LICENSE',
+  'CHANGELOG.md',
+  'SUPPORT.md',
+  path.join('images', 'icon.png'),
+];
 
 /** 清掉 .obsolete 里本扩展的陈旧条目，否则 VS Code 启动时会跳过甚至删除这个目录 */
 function clearObsoleteEntry() {
@@ -47,7 +57,14 @@ function clearObsoleteEntry() {
 
 fs.mkdirSync(target, { recursive: true });
 for (const file of files) {
-  fs.copyFileSync(path.join(root, file), path.join(target, file));
+  const src = path.join(root, file);
+  if (!fs.existsSync(src)) {
+    console.log('  skip  ' + file + '（不存在）');
+    continue;
+  }
+  const dst = path.join(target, file);
+  fs.mkdirSync(path.dirname(dst), { recursive: true });
+  fs.copyFileSync(src, dst);
   console.log('  copied ' + file);
 }
 clearObsoleteEntry();

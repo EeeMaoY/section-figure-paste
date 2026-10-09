@@ -4,7 +4,7 @@
 #   GitHub 账号 / 仓库属主 = EeeMaoY   （下面 subject 里用）
 #   Marketplace publisher  = EeeMao    （package.json 的 publisher，发布目标）
 #
-# 前置配置见 docs/PUBLISHING.md「CI 自动发布」一节。用到的仓库配置：
+# 前置配置见 .scratch/PUBLISHING.md（本机文档，不进仓库）。用到的仓库配置：
 #   Environment : marketplace      （Entra 的 federated credential 信任的就是它 —— 这样以后加新 tag 都不用改信任配置）
 #   Variable    : AZURE_CLIENT_ID  （Entra 应用的 client id）
 #   Variable    : AZURE_TENANT_ID  （租户 id）
@@ -95,7 +95,7 @@ jobs:
       - name: OIDC 登录失败则终止
         if: steps.azure_login.outcome != 'success'
         run: |
-          echo "::error::OIDC 登录 Azure 失败，没进入发布环节。最常见的原因是 federated credential 的 subject 与 GitHub token 的 sub 对不上（环境名拼错、或锚到了 branch/tag）。排错见 docs/PUBLISHING.md"
+          echo "::error::OIDC 登录 Azure 失败，没进入发布环节。最常见的原因是 federated credential 的 subject 与 GitHub token 的 sub 对不上（环境名拼错、或锚到了 branch/tag）。"
           exit 1
 
       - name: 打包 .vsix
