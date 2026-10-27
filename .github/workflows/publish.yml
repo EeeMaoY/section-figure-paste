@@ -113,14 +113,30 @@ jobs:
     needs: publish
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # git-cliff 需要完整历史与 tag
+
       - uses: actions/download-artifact@v4
         with:
           name: vsix
+
+      # 更新日志按 .github/cliff.toml 从 commit/PR 自动整合；
+      # 跳过规则：commit 信息或正文里写 [skip changelog]
+      - name: 生成更新日志（git-cliff）
+        id: cliff
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: .github/cliff.toml
+          args: --latest --strip all
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
 
       - name: 建 Release 并挂上 .vsix
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          generate_release_notes: true
+          body: ${{ steps.cliff.outputs.content }}
           files: '*.vsix'

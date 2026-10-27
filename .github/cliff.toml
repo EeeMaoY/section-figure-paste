@@ -1,0 +1,64 @@
+# git-cliff 配置 —— 把 conventional commits 自动整合成中文更新日志。
+# publish.yml 的 release 步骤用 `git cliff --latest --strip all` 生成 Release 正文；
+# 本地全量预览：npx git-cliff --config .github/cliff.toml
+#
+# 兼容本仓库的两种历史 commit 习惯（见 commit_preprocessors）：
+#   - `type:描述` 冒号后没空格（conventional 规范要求空格，否则解析不出类型）
+#   - 个别 commit 开头带 BOM（U+FEFF），同样会让类型识别失败
+
+[remote.github]
+owner = "EeeMaoY"
+repo = "section-figure-paste"
+
+[changelog]
+header = ""
+# Release 正文取的就是这段 body（配合 --latest --strip all）
+body = """
+{%- macro remote_url() -%}
+https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
+{%- endmacro -%}
+{%- if version %}
+## {{ version | trim_start_matches(pat="v") }} · {{ timestamp | date(format="%Y-%m-%d") }}
+{%- else %}
+## 未发布
+{%- endif %}
+{%- for group, commits in commits | group_by(attribute="group") %}
+
+### {{ group | split(pat=" -->") | last }}
+
+{%- for commit in commits %}
+- {{ commit.message | upper_first }}{% if commit.remote.pr_number %} ([#{{ commit.remote.pr_number }}]({{ self::remote_url() }}/pull/{{ commit.remote.pr_number }})){% endif %} ([{{ commit.id | truncate(length=7, end="") }}]({{ self::remote_url() }}/commit/{{ commit.id }}))
+{%- endfor %}
+{%- endfor %}
+"""
+footer = ""
+
+[git]
+conventional_commits = true
+# 解析不出 conventional 格式的 commit 不丢弃，兜底进「其他」分组
+filter_unconventional = false
+split_commits = false
+sort_commits = "oldest"
+
+commit_preprocessors = [
+  # 历史遗留：开头的 BOM 会让 type 识别失败
+  { pattern = '\u{FEFF}', replace = "" },
+  # 历史遗留：`ci:xxx` 冒号后没空格，补上
+  { pattern = '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert):(\S)', replace = "$1: $2" },
+]
+
+# group 名里的 <!-- NN --> 注释不输出，只用来固定分组顺序（两位数保证字典序）
+commit_parsers = [
+  { message = '\[skip changelog\]', skip = true },
+  { body = '\[skip changelog\]', skip = true },
+  { message = '^feat', group = '<!-- 00 -->✨ 新功能' },
+  { message = '^fix', group = '<!-- 10 -->🐛 问题修复' },
+  { message = '^perf', group = '<!-- 20 -->⚡ 性能优化' },
+  { message = '^refactor', group = '<!-- 30 -->♻️ 重构' },
+  { message = '^docs', group = '<!-- 40 -->📝 文档' },
+  { message = '^test', group = '<!-- 50 -->✅ 测试' },
+  { message = '^ci', group = '<!-- 60 -->🔧 构建与发布' },
+  { message = '^chore', group = '<!-- 70 -->🧹 杂项' },
+  { message = '^revert', group = '<!-- 80 -->◀️ 回滚' },
+  { message = '.*', group = '<!-- 99 -->其他' },
+]
