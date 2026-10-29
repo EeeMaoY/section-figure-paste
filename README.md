@@ -151,6 +151,10 @@ node test/extension.test.js   # 用假的 vscode 模块把"激活 → 粘贴 →
 - **一次性脚本、临时产物、本机专用文件统一放 `.scratch/`**：它同时被 `.gitignore` 与 `.vscodeignore` 忽略，
   既不提交也不进 `.vsix`。例如生成图标/演示图的脚本、上架自检脚本、`.vsix` 本地构建脚本都在那里。
 
+## 后续计划
+
+- **LaTeX 支持**：贴图自动按章节命名，并插入 `\includegraphics{...}` 引用。
+
 ## 已知限制
 
 - 剪贴板里如果是**位图**（截图工具直接复制），名字本来就不存在，VS Code 只能给它 `image.png`；本扩展会按章节重命名，`${origName}` 因此恒为 `image`。
