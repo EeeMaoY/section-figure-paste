@@ -2,9 +2,9 @@
 
 [![test](https://github.com/EeeMaoY/section-figure-paste/actions/workflows/test.yml/badge.svg)](https://github.com/EeeMaoY/section-figure-paste/actions/workflows/test.yml)
 
-![演示：在 === telnet 命令产生的数据包 里粘贴，图片存成 imgs/5.9.1.png](images/demo.png)
+![演示：在 === Sub Section 1.1 里粘贴，图片存成 imgs/1.1.1.png](images/demo.png)
 
-粘贴图片时**按光标所处章节自动命名**的 VS Code 扩展：在 `=== telnet 命令产生的数据包` 里 Ctrl+V，图片会存成 `imgs/5.9.1.png`（该章节第 1 张图），并在光标处插入 `#image("imgs/5.9.1.png", width: 80%)`；同一章节继续粘贴就是 `5.9.2.png`、`5.9.3.png`…… Markdown 文档同样支持。
+粘贴图片时**按光标所处章节自动命名**的 VS Code 扩展：在 `=== Sub Section 1.1` 里 Ctrl+V，图片会存成 `imgs/1.1.1.png`（该章节第 1 张图），并在光标处插入 `#image("imgs/1.1.1.png")`；同一章节继续粘贴就是 `1.1.2.png`、`1.1.3.png`……直接在 `== Section 2` 标题下粘贴则是 `2.1.png`。 Markdown 文档同样支持。
 
 ## 为什么需要它
 
@@ -118,7 +118,7 @@ node tools/update-user-settings.js --write   # 把必需开关写进用户 setti
 
 ## 章节号是怎么算的
 
-以浙大实验报告模板（`theme == "lab"`）的 lab1 报告为例：
+以一份计算机网络实验报告模板的 lab1 报告为例：
 
 | 文档结构 | 章节号 |
 | --- | --- |
@@ -157,7 +157,6 @@ node test/extension.test.js   # 用假的 vscode 模块把"激活 → 粘贴 →
 - 粘贴**工作区内**已有的图片文件时，本扩展也会复制一份到 `imgs/` 并重命名（Tinymist 原本是直接引用原位置）。
 - 重命名磁盘上的图片不会自动改写文档里的引用——不过 Tinymist 自己支持"文件重命名/移动时更新链接"，在资源管理器里 F2 改名即可。
 - 拖拽多条文件、或粘贴非图片文件时，本扩展不接管，交回给编辑器默认行为。
-- 上面那张演示图是按实际界面手绘的示意图（不是录屏）。想自己录 GIF 的话，用 ScreenToGif 之类录下"输入 `=== 标题` → Ctrl+V → 看文件名"这一段即可。
 
 ## 反馈
 
